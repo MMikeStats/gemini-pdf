@@ -1,0 +1,43 @@
+import os
+import google.generativeai as genai
+
+# Retrieve the API key from an environment variable
+api_key = os.environ.get('GOOGLE_API_KEY')
+
+if not api_key:
+    raise ValueError("No API key found. Set the GOOGLE_API_KEY environment variable.")
+
+genai.configure(api_key=api_key)
+
+# Rest of your script remains the same
+# Create the model
+safety_settings = [
+    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+]
+
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    safety_settings=safety_settings
+)
+
+# Upload the file and print a confirmation.
+sample_file = genai.upload_file(path="Citibank Jan_page_3.jpg", display_name="citi")
+
+# Prompt for the model to extract table from image
+prompt = """
+Examine the image for any tables. If a table is found, reply in csv format that can be opened in Excel.
+"""
+
+contents = [
+    sample_file,
+    prompt,
+]
+
+# Generate content using the model
+response = model.generate_content(contents)
+
+# Print the model's response which should include the DataFrame code
+print(response.text)
